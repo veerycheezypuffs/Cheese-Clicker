@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cheese Clicker</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Fredoka', sans-serif;
+    background: radial-gradient(circle at top, #2a2a40, #0d0d18);
+    color: white;
+    overflow: hidden;
+}
+
+.game {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    height: 100vh;
+}
+
+#cheeseWorld {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    position: relative;
+}
+
+#bigCheese {
+    width: 260px;
+    transition: transform 0.2s ease;
+}
+
+#cheeseAura {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,200,0,0.15), transparent);
+    border-radius: 50%;
+    animation: pulseAura 2s infinite;
+}
+
+@keyframes pulseAura {
+    0% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 0.4; }
+}
+
+/* LEFT */
+.left {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#rollBtn {
+    width: 240px;
+    height: 240px;
+    background: url("cheese.png") center/cover no-repeat;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.05s;
+}
+
+#rollBtn:active {
+    transform: scale(0.85);
+}
+
+/* CENTER */
+.center {
+    text-align: center;
+    padding-top: 40px;
+}
+
+#cheeseCount {
+    font-size: 48px;
+}
+
+#stats {
+    opacity: 0.8;
+}
+
+/* FLOATING */
+.floating {
+    position: absolute;
+    color: white;
+    text-shadow: 0 0 8px rgba(255,255,255,0.9);
+    animation: floatUp 0.8s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-60px); opacity: 0; }
+}
+
+/* RIGHT */
+.right {
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.panel {
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+/* BUTTONS */
+button {
+    font-family: 'Fredoka', sans-serif;
+    background: linear-gradient(145deg, #3a3a5a, #1a1a2e);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    width: 100%;
+    margin-top: 6px;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.2);
+}
+
+button.shop {
+    background: linear-gradient(145deg, #2a5a3a, #1a2e22);
+}
+
+button:disabled {
+    opacity: 0.3;
+}
+
+/* POP */
+.pop {
+    animation: pop 0.2s ease;
+}
+
+@keyframes pop {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* SETTINGS PANEL */
+#settings {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 180px;
+    background: rgba(0,0,0,0.4);
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="settings">
+    <b>Settings</b><br><br>
+    <label>
+        <input type="checkbox" id="shakeToggle" checked>
+        Screen Shake
+    </label>
+</div>
+
+<div class="game">
+
+<div class="left">
+    <button id="rollBtn"></button>
+</div>
+
+<div class="center">
+    <div id="cheeseCount">0 🧀</div>
+    <div id="stats"></div>
+    <div id="cheeseWorld">
+    <img id="bigCheese" src="cheese.png">
+    <div id="cheeseAura"></div>
+</div>
+</div>
+
+
+<div class="right">
+<div class="panel">
+    <h3>Upgrades</h3>
+
+    <button onclick="buy('click')">
+        Click Power +1 (<span id="clickCost"></span>)
+    </button>
+
+    <button onclick="buy('cps')">
+        CPS +1 (<span id="cpsCost"></span>)
+    </button>
+
+    <button onclick="buy('farm')">
+        Cheese Farm +5 CPS (<span id="farmCost"></span>)
+    </button>
+
+    <button onclick="buy('factory')">
+        Factory +20 CPS (<span id="factoryCost"></span>)
+    </button>
+
+    <button onclick="buy('mult')">
+        Global Multiplier +0.1x CPS (<span id="multCost"></span>)
+    </button>
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+/* STATE */
+let cheese = 0;
+let cps = 0;
+let clickPower = 1;
+let mult = 1;
+let growth = 1;
+let growThreshold = 500; // when it pops
+
+let shakeEnabled = true;
+
+/* UPGRADES */
+let upgrades = {
+    click: 15,
+    cps: 10,
+    farm: 60,
+    factory: 250,
+    mult: 1000
+};
+
+/* CLICK */
+document.getElementById("rollBtn").addEventListener("click", (e) => {
+
+    cheese += clickPower;
+
+    spawn("+" + clickPower, e);
+
+    if (shakeEnabled) {
+        document.body.classList.add("shake");
+        setTimeout(() => document.body.classList.remove("shake"), 120);
+    }
+
+    document.getElementById("cheeseCount").classList.add("pop");
+    setTimeout(() => document.getElementById("cheeseCount").classList.remove("pop"), 200);
+});
+
+/* FLOAT */
+function spawn(text, e) {
+    const el = document.createElement("div");
+    el.className = "floating";
+    el.innerText = text;
+
+    el.style.left = e.clientX + "px";
+    el.style.top = e.clientY + "px";
+
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 800);
+}
+
+/* BUY SYSTEM */
+function buy(type) {
+
+    if (cheese < upgrades[type]) return;
+
+    cheese -= upgrades[type];
+
+    switch(type) {
+        case "click":
+            clickPower++;
+            break;
+
+        case "cps":
+            cps += 1;
+            break;
+
+        case "farm":
+            cps += 5;
+            break;
+
+        case "factory":
+            cps += 20;
+            break;
+
+        case "mult":
+            mult += 0.1;
+            break;
+    }
+
+    upgrades[type] = Math.floor(upgrades[type] * (type === "mult" ? 2.5 : 1.6));
+}
+
+/* LOOP */
+let last = Date.now();
+
+function loop() {
+    let now = Date.now();
+    let dt = (now - last) / 1000;
+    last = now;
+
+    cheese += cps * mult * dt;
+    growth = 1 + Math.min(cheese / 2000, 2); 
+// caps at 3x size max
+
+    checkPop();
+    update();
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+/* UI */
+function format(n) {
+    if (n < 1000) return Math.floor(n);
+    if (n < 1e6) return (n/1000).toFixed(1)+"K";
+    return (n/1e6).toFixed(1)+"M";
+}
+
+function update() {
+    document.getElementById("cheeseCount").innerText = format(cheese) + " 🧀";
+
+    document.getElementById("stats").innerText =
+        "+" + clickPower + " click | " +
+        Math.floor(cps * mult) + " cps | " +
+        "x" + mult.toFixed(1);
+
+    document.getElementById("clickCost").innerText = upgrades.click;
+    document.getElementById("cpsCost").innerText = upgrades.cps;
+    document.getElementById("farmCost").innerText = upgrades.farm;
+    document.getElementById("factoryCost").innerText = upgrades.factory;
+    document.getElementById("multCost").innerText = upgrades.mult;
+    document.getElementById("bigCheese").style.transform = `scale(${growth})`;
+
+    let scale = 1 + Math.min(cheese / 10000, 0.5);
+    document.getElementById("bigCheese").style.transform = `scale(${scale})`;
+}
+
+function checkPop() {
+    if (cheese >= growThreshold) {
+
+        let bonus = Math.floor(cheese * 0.5);
+
+        cheese = bonus;
+
+        growThreshold = Math.floor(growThreshold * 1.8);
+
+        spawn("💥 CHEESE POP! +" + bonus, {
+            clientX: window.innerWidth / 2,
+            clientY: window.innerHeight / 2
+        });
+
+        // reset visual growth burst
+        growth = 0.5;
+    }
+}
+
+/* SHAKE TOGGLE */
+document.getElementById("shakeToggle").addEventListener("change", (e) => {
+    shakeEnabled = e.target.checked;
+});
+
+/* SAVE */
+function save() {
+    localStorage.setItem("cheese_v2", JSON.stringify({
+        cheese,
+        cps,
+        clickPower,
+        mult,
+        upgrades,
+        shakeEnabled
+    }));
+}
+
+function load() {
+    let data = JSON.parse(localStorage.getItem("cheese_v2"));
+    if (!data) return;
+
+    cheese = data.cheese || 0;
+    cps = data.cps || 0;
+    clickPower = data.clickPower || 1;
+    mult = data.mult || 1;
+    upgrades = data.upgrades || upgrades;
+    shakeEnabled = data.shakeEnabled ?? true;
+
+    document.getElementById("shakeToggle").checked = shakeEnabled;
+}
+
+load();
+setInterval(save, 3000);
+
+</script>
+
+</body>
+</html>
