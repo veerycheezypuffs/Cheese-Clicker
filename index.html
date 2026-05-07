@@ -530,27 +530,6 @@ document.querySelectorAll(".shop").forEach(btn => {
         `scale(${scale})`;
 }
 
-/* CHEESE POP */
-function checkPop() {
-
-    if (cheese >= growThreshold) {
-
-        let bonus = Math.floor(cheese * 0.5);
-
-        /* ADD BONUS INSTEAD OF REPLACING */
-        cheese += bonus;
-
-        growThreshold = Math.floor(growThreshold * 1.8);
-
-        spawn(
-            "💥 CHEESE POP! +" + format(bonus),
-            {
-                clientX: window.innerWidth / 2,
-                clientY: window.innerHeight / 2
-            }
-        );
-    }
-}
 
 /* SHAKE */
 document.getElementById("shakeToggle")
@@ -563,7 +542,7 @@ document.getElementById("shakeToggle")
 function save() {
 
     localStorage.setItem(
-        "cheese_v4",
+        "cheese_v5",
         JSON.stringify({
             cheese,
             cps,
@@ -581,7 +560,7 @@ function load() {
     let data;
 
     try {
-        data = JSON.parse(localStorage.getItem("cheese_v4"));
+        data = JSON.parse(localStorage.getItem("cheese_v5"));
     }
     catch {
         data = null;
@@ -655,7 +634,7 @@ function resetSave() {
 
     if (!confirm("Reset all progress?")) return;
 
-    localStorage.removeItem("cheese_v4");
+    localStorage.removeItem("cheese_v5");
 
     cheese = 0;
     cps = 0;
