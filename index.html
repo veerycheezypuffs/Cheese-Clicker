@@ -563,7 +563,7 @@ document.getElementById("shakeToggle")
 function save() {
 
     localStorage.setItem(
-        "cheese_v3",
+        "cheese_v4",
         JSON.stringify({
             cheese,
             cps,
@@ -581,7 +581,7 @@ function load() {
     let data;
 
     try {
-        data = JSON.parse(localStorage.getItem("cheese_v2"));
+        data = JSON.parse(localStorage.getItem("cheese_v4"));
     }
     catch {
         data = null;
