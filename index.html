@@ -244,9 +244,9 @@ button:disabled {
 
             <!-- ADD THESE BUTTONS under Factory -->
 
-<button class="shop" data-type="portal" onclick="buy('portal')">
-    Portal +500 CPS (<span id="portalCost"></span>)
-</button>
+        <button class="shop" data-type="portal" onclick="buy('portal')">
+            Portal +500 CPS (<span id="portalCost"></span>)
+        </button>
 
 <button class="shop" data-type="paradox" onclick="buy('paradox')">
     Paradox Engine +2000 CPS (<span id="paradoxCost"></span>)
@@ -260,8 +260,8 @@ button:disabled {
     12000x Global Multiplier (<span id="itsTooMuchMultCost"></span>)
 </button>
 
-            <button class="shop" data-type="mult" onclick="buy('mult')">
-                5x Global Multiplier (<span id="multCost"></span>)
+<button class="shop" data-type="mult" onclick="buy('mult')">
+    5x Global Multiplier (<span id="multCost"></span>)
             </button>
 
             <button class="shop" data-type="moreMult" onclick="buy('moreMult')">
@@ -275,6 +275,29 @@ button:disabled {
             <button class="shop" data-type="soMuchMult" onclick="buy('soMuchMult')">
                 50x Global Multiplier (<span id="soMuchMultCost"></span>)
             </button>
+            <button class="shop" data-type="multiverse" onclick="buy('multiverse')">
+    Multiverse +4000 CPS (<span id="multiverseCost"></span>)
+</button>
+
+<button class="shop" data-type="space" onclick="buy('space')">
+    Space Cheese +10000 CPS (<span id="spaceCost"></span>)
+</button>
+
+<button class="shop" data-type="thecheese" onclick="buy('thecheese')">
+    THE CHEESE +25000 CPS (<span id="thecheeseCost"></span>)
+</button>
+
+<button class="shop" data-type="soMuchHolyMult" onclick="buy('soMuchHolyMult')">
+    25000x Multiplier (<span id="soMuchHolyMultCost"></span>)
+</button>
+
+<button class="shop" data-type="wayTooMuchMult" onclick="buy('wayTooMuchMult')">
+    50000x Multiplier (<span id="wayTooMuchMultCost"></span>)
+</button>
+
+<button class="shop" data-type="wayWayTooMuchMult" onclick="buy('wayWayTooMuchMult')">
+    200000x GOD MULT (<span id="wayWayTooMuchMultCost"></span>)
+</button>
 
         </div>
 
@@ -289,7 +312,6 @@ let cheese = 0;
 let cps = 0;
 let clickPower = 1;
 let mult = 1;
-let growThreshold = 500;
 
 let shakeEnabled = true;
 
@@ -299,17 +321,21 @@ const defaultUpgrades = {
     cps: 10,
     farm: 60,
     factory: 250,
-
     portal: 500,
     paradox: 1250,
+    multiverse: 4000,
+    space: 10000,
+    thecheese: 25000,
 
     mult: 1000,
     moreMult: 2000,
     evenMoreMult: 5000,
     soMuchMult: 12000,
-
     tooMuchMult: 20000,
     itsTooMuchMult: 40000,
+    soMuchHolyMult: 100000,
+    wayTooMuchMult: 150000,
+    wayWayTooMuchMult: 300000,
 };
 
 let upgrades = { ...defaultUpgrades };
@@ -387,6 +413,16 @@ function buy(type) {
         case "paradox":
             cps += 2000;
             break;
+        
+        case "multiverse":
+            cps += 4000;
+            break;
+        case "space":
+            cps += 10000;
+            break;
+        case "thecheese":
+            cps += 25000;
+            break;
 
         /* TRUE MULTIPLIERS */
 
@@ -412,6 +448,15 @@ function buy(type) {
 
         case "itsTooMuchMult":
             mult += 12000;
+            break;
+        case "soMuchHolyMult":
+            mult += 25000;
+            break;
+        case "wayTooMuchMult":
+            mult += 50000;
+            break;
+        case "wayWayTooMuchMult":
+            mult += 200000;
             break;
     }
 
@@ -443,7 +488,6 @@ function loop() {
 
     cheese += cps * mult * dt;
 
-    checkPop();
     update();
 
     requestAnimationFrame(loop);
@@ -512,6 +556,23 @@ document.getElementById("tooMuchMultCost").innerText =
 
 document.getElementById("itsTooMuchMultCost").innerText =
     format(upgrades.itsTooMuchMult);
+document.getElementById("multiverseCost").innerText =
+    format(upgrades.multiverse);
+
+document.getElementById("spaceCost").innerText =
+    format(upgrades.space);
+
+document.getElementById("thecheeseCost").innerText =
+    format(upgrades.thecheese);
+
+document.getElementById("soMuchHolyMultCost").innerText =
+    format(upgrades.soMuchHolyMult);
+
+document.getElementById("wayTooMuchMultCost").innerText =
+    format(upgrades.wayTooMuchMult);
+
+document.getElementById("wayWayTooMuchMultCost").innerText =
+    format(upgrades.wayWayTooMuchMult);
 
     /* DISABLE BUTTONS */
 document.querySelectorAll(".shop").forEach(btn => {
@@ -530,7 +591,6 @@ document.querySelectorAll(".shop").forEach(btn => {
         `scale(${scale})`;
 }
 
-
 /* SHAKE */
 document.getElementById("shakeToggle")
 .addEventListener("change", (e) => {
@@ -542,7 +602,7 @@ document.getElementById("shakeToggle")
 function save() {
 
     localStorage.setItem(
-        "cheese_v5",
+        "cheese_v6",
         JSON.stringify({
             cheese,
             cps,
@@ -560,7 +620,7 @@ function load() {
     let data;
 
     try {
-        data = JSON.parse(localStorage.getItem("cheese_v5"));
+        data = JSON.parse(localStorage.getItem("cheese_v6"));
     }
     catch {
         data = null;
@@ -623,6 +683,29 @@ function load() {
     itsTooMuchMult: data.upgrades?.itsTooMuchMult > 0
         ? data.upgrades.itsTooMuchMult
         : defaultUpgrades.itsTooMuchMult,
+    multiverse: data.upgrades?.multiverse > 0
+    ? data.upgrades.multiverse
+    : defaultUpgrades.multiverse,
+
+space: data.upgrades?.space > 0
+    ? data.upgrades.space
+    : defaultUpgrades.space,
+
+thecheese: data.upgrades?.thecheese > 0
+    ? data.upgrades.thecheese
+    : defaultUpgrades.thecheese,
+
+soMuchHolyMult: data.upgrades?.soMuchHolyMult > 0
+    ? data.upgrades.soMuchHolyMult
+    : defaultUpgrades.soMuchHolyMult,
+
+wayTooMuchMult: data.upgrades?.wayTooMuchMult > 0
+    ? data.upgrades.wayTooMuchMult
+    : defaultUpgrades.wayTooMuchMult,
+
+wayWayTooMuchMult: data.upgrades?.wayWayTooMuchMult > 0
+    ? data.upgrades.wayWayTooMuchMult
+    : defaultUpgrades.wayWayTooMuchMult,
 };
 
     document.getElementById("shakeToggle").checked =
@@ -634,7 +717,7 @@ function resetSave() {
 
     if (!confirm("Reset all progress?")) return;
 
-    localStorage.removeItem("cheese_v5");
+    localStorage.removeItem("cheese_v6");
 
     cheese = 0;
     cps = 0;
